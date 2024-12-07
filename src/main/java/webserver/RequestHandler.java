@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -42,12 +43,10 @@ public class RequestHandler extends Thread {
             String path = tokens[1];
 
             DataOutputStream dos = new DataOutputStream(out);
-
             int contentLength = 0;
-
             String cookie = "";
-
             log.debug("request line: {}", line);
+
 
             while (!isLineBlank(line)) {
                 line = bufferedReader.readLine();
@@ -73,7 +72,25 @@ public class RequestHandler extends Thread {
                     responseRedirectLogin(out);
                     return;
                 }
-                responseResource(out, "/user/list.html");
+
+                Collection<User> users = DataBase.findAll();
+                StringBuilder html = new StringBuilder();
+
+                html.append("<table table-hover>");
+                for(User user : users) {
+                    html.append("<tr>");
+                    html.append("<td>").append(user.getUserId()).append("</td>");
+                    html.append("<td>").append(user.getName()).append("</td>");
+                    html.append("<td>").append(user.getEmail()).append("</td>");
+                    html.append("</tr>");
+                }
+                html.append("</table>");
+
+                DataOutputStream newDos = new DataOutputStream(out);
+                byte[] body = html.toString().getBytes();
+
+                response200Header(newDos, body.length);
+                responseBody(newDos, body);
                 return;
             }
 
