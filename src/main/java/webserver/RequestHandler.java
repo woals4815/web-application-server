@@ -42,29 +42,34 @@ public class RequestHandler extends Thread {
             String method = tokens[0];
             String path = tokens[1];
 
+
             DataOutputStream dos = new DataOutputStream(out);
             int contentLength = 0;
             String cookie = "";
+            String accept = "";
             log.debug("request line: {}", line);
-
-
             while (!isLineBlank(line)) {
                 line = bufferedReader.readLine();
+                log.debug("header line {}", line);
                 if (hasContentLength(line)) {
                     contentLength = this.getContentLength(line);
                 }
                 if (hasCookie(line)) {
                     cookie = getCookie(line);
                 }
+                if(hasAccept(line)) {
+                    accept = getAccept(line);
+                }
             }
 
             if (path.startsWith("/user/login") && method.equals("POST")) {
                 String data = IOUtils.readData(bufferedReader, contentLength);
                 if (!(checkLoginInfo(HttpRequestUtils.parseQueryString(data)))) {
-                    responseResource(out, "/user/login_failed.html");
+                    responseResource(out, "/user/login_failed.html", accept);
                     return;
                 }
                 response302LoginSuccess(dos);
+                return;
             }
 
             if (path.startsWith("/user/list")) {
@@ -89,7 +94,7 @@ public class RequestHandler extends Thread {
                 DataOutputStream newDos = new DataOutputStream(out);
                 byte[] body = html.toString().getBytes();
 
-                response200Header(newDos, body.length);
+                response200Header(newDos, body.length, accept);
                 responseBody(newDos, body);
                 return;
             }
@@ -109,12 +114,22 @@ public class RequestHandler extends Thread {
                 resposne302Header(dos, "/index.html");
             } else {
                 log.debug("-----------------last--------------------- path is {}", path);
-                responseResource(out, path);
+                responseResource(out, path, accept);
             }
         } catch (IOException e) {
             log.debug("error");
             log.error(e.getMessage());
         }
+    }
+
+
+    private String getAccept(String line){
+        String accepts = line.split(":")[1];
+        return accepts.split(",")[0];
+    }
+
+    private boolean hasAccept(String line) {
+        return line.split(":")[0].equals("Accept");
     }
 
     private void responseRedirectLogin(OutputStream out) throws IOException {
@@ -158,34 +173,16 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String accept) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + accept + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
-
-    private void responseLoginResult(OutputStream out, boolean loginSuccess) {
-        try {
-            DataOutputStream dos = new DataOutputStream(out);
-            if(loginSuccess) {
-                dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-                dos.writeBytes("Set-Cookie: logined=true \r\n");
-                dos.writeBytes("Location: /index.html \r\n");
-                dos.writeBytes("\r\n");
-            } else {
-                responseResource(dos, "/user/login_failed.html");
-            }
-        }catch (Exception e) {
-            log.error(e.getMessage());
-        }
-    }
-
-
 
     private boolean checkLoginInfo(Map<String, String> formValues) {
         String userId = formValues.get("userId");
@@ -196,13 +193,14 @@ public class RequestHandler extends Thread {
 
     private void responseResource(
             OutputStream output,
-            String url
+            String url,
+            String accept
     ) {
         try {
             log.debug("output stream: {}", url);
             DataOutputStream dos = new DataOutputStream(output);
             byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-            response200Header(dos, body.length);
+            response200Header(dos, body.length, accept);
             responseBody(dos, body);
         } catch (Exception e) {
             log.error(e.getMessage());
