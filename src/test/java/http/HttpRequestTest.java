@@ -27,4 +27,19 @@ public class HttpRequestTest {
         request.showLog();
     }
 
+    @Test
+    public void testGetMethod(){
+        assertEquals("GET", request.getMethod());
+    }
+
+    @Test
+    public void testGetUrl(){
+        assertEquals("/user/create?userId=javajigi&password=passwrod&name=jaemin", request.getUrl());
+    }
+
+    @Test
+    public void testGetheader(){
+        System.out.println(request.getHeaders());
+    }
+
 }

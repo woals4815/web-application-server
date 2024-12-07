@@ -48,4 +48,10 @@
 * 
 
 ### heroku 서버에 배포 후
-* 
+
+
+### Refactor
+
+* HttpRequest 로직 처리하는 클래스 만들기 
+1. 받은 InputStream의 http request line을 따로 빼서 공통으로 사용해야 할까?
+2. 

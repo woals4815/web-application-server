@@ -7,14 +7,36 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequest {
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
     private InputStream in;
     private BufferedReader br;
+    private String method;
+    private String url;
+    private Map<String, String> headers = new HashMap<String, String>();
+
     public HttpRequest(InputStream in) {
-        this.in = in;
-        this.br = new BufferedReader(new InputStreamReader(in));
+        try {
+            this.in = in;
+            this.br = new BufferedReader(new InputStreamReader(this.in));
+
+            String line = br.readLine();
+            String[] tokens = line.split(" ");
+            this.method = tokens[0];
+            this.url = tokens[1];
+
+            while(line != null && !line.isEmpty()) {
+                line = br.readLine();
+                if (line == null) return;
+                String[] headerKeyValue = line.split(":");
+                headers.put(headerKeyValue[0], headerKeyValue[1].trim());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void showLog(){
@@ -24,7 +46,14 @@ public class HttpRequest {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-
     }
-
+    public String getMethod() {
+        return this.method;
+    }
+    public String getUrl() {
+        return this.url;
+    }
+    public Map<String, String> getHeaders() {
+        return this.headers;
+    }
 }
