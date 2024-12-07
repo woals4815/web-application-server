@@ -13,6 +13,7 @@ import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -44,35 +45,38 @@ public class RequestHandler extends Thread {
             String resources = path.substring(1);
             DataOutputStream dos = new DataOutputStream(out);
 
-            if (path.contains("/user/create")) {
-                String forms = path.split(Pattern.quote("?"))[1];
-                Map<String, String> keyValue =  HttpRequestUtils.parseQueryString(forms);
+            log.debug("request line {}", line);
+
+            String contentLength = "";
+
+            while (line != null && !line.equals("")) {
+                line = bufferedReader.readLine();
+                String[] headerKeyValue = line.split(":");
+                if (headerKeyValue[0].equals("Content-Length")) {
+                    contentLength = headerKeyValue[1].trim();
+                }
+                log.debug("header {}", line);
+            }
+
+
+            if (path.startsWith("/user/create")) {
+                String data = IOUtils.readData(bufferedReader, Integer.parseInt( contentLength ));
+                Map<String, String> keyValue = HttpRequestUtils.parseQueryString(data);
+
                 User newUser = new User(
                         keyValue.get("userId"),
                         keyValue.get("password"),
                         keyValue.get("name"),
                         keyValue.get("email")
                 );
-                log.debug(newUser.toString());
-                response200Header(dos, newUser.toString().length());
-                responseBody(dos, newUser.toString().getBytes());
-            }
 
-            if (resources.isEmpty()) {
                 byte[] files = Files.readAllBytes(new File("./webapp/index.html").toPath());
-                response200Header(dos, files.length);
+                resposne302Header(dos, files.length);
                 responseBody(dos, files);
             } else {
-                log.debug("resources: {}", resources);
                 byte[] files = Files.readAllBytes(new File("./webapp/" + resources).toPath());
                 response200Header(dos, files.length);
                 responseBody(dos, files);
-            }
-
-            log.debug("request line {}", line);
-            while (line != null && !line.equals("")) {
-                line = bufferedReader.readLine();
-                log.debug("header {}", line);
             }
 
 
@@ -89,6 +93,18 @@ public class RequestHandler extends Thread {
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void resposne302Header(DataOutputStream dos, int lengthOfBodyContent) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 OK \r\n");
+            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("Location: /index.html\r\n");
+            dos.writeBytes("\r\n");
+        }catch (Exception e) {
             log.error(e.getMessage());
         }
     }
