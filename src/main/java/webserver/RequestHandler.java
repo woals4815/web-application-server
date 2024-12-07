@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import util.IOUtils;
 
+import javax.xml.crypto.Data;
+
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
@@ -39,7 +41,6 @@ public class RequestHandler extends Thread {
             String method = tokens[0];
             String path = tokens[1];
 
-            String resources = path.substring(1);
             DataOutputStream dos = new DataOutputStream(out);
 
             int contentLength = 0;
@@ -49,16 +50,18 @@ public class RequestHandler extends Thread {
                 if (hasContentLength(line)) {
                     contentLength = this.getContentLength(line);
                 }
-                log.debug("header {}", line);
             }
 
             if (path.startsWith("/user/login") && method.equals("POST")) {
                 String data = IOUtils.readData(bufferedReader, contentLength);
-                responseLoginResult(dos, checkLoginInfo( HttpRequestUtils.parseQueryString(data) ));
+                if (!(checkLoginInfo(HttpRequestUtils.parseQueryString(data)))) {
+                    responseResource(out, "/user/login_failed.html");
+                    return;
+                }
+                response302LoginSuccess(dos);
             }
 
-
-            if (path.startsWith("/user/create")) {
+            if (path.startsWith("/user/create") && method.equals("POST")) {
                 String data = IOUtils.readData(bufferedReader, contentLength);
                 Map<String, String> keyValue = HttpRequestUtils.parseQueryString(data);
 
@@ -71,13 +74,8 @@ public class RequestHandler extends Thread {
                 DataBase.addUser(newUser);
                 resposne302Header(dos, "/index.html");
             } else {
-                byte[] files = Files.readAllBytes(new File("./webapp/" + resources).toPath());
-                response200Header(dos, files.length);
-                responseBody(dos, files);
+                responseResource(out, path);
             }
-
-
-
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -95,6 +93,19 @@ public class RequestHandler extends Thread {
         return Integer.parseInt(tokens[1].trim());
     }
 
+    private void response302LoginSuccess(
+            DataOutputStream dos
+    ) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Set-Cookie: logined=true; Path=/ \r\n");
+            dos.writeBytes("Location: /index.html \r\n");
+            dos.writeBytes("\r\n");
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
@@ -106,19 +117,16 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void responseLoginResult(DataOutputStream dos, boolean loginSuccess) {
+    private void responseLoginResult(OutputStream out, boolean loginSuccess) {
         try {
+            DataOutputStream dos = new DataOutputStream(out);
             if(loginSuccess) {
                 dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+                dos.writeBytes("Set-Cookie: logined=true \r\n");
                 dos.writeBytes("Location: /index.html \r\n");
-                dos.writeBytes("Set-Cookie: " + "logined=true \r\n");
                 dos.writeBytes("\r\n");
             } else {
-                byte[] body =Files.readAllBytes(new File("./webapp/user/login_failed.html").toPath());
-                dos.writeBytes("Set-Cookie: " + "logined=false\r\n");
-                response200Header(dos, body.length);
-                responseBody(dos, body);
-                dos.writeBytes("\r\n");
+                responseResource(dos, "/user/login_failed.html");
             }
         }catch (Exception e) {
             log.error(e.getMessage());
@@ -132,6 +140,20 @@ public class RequestHandler extends Thread {
         String password = formValues.get("password");
         User user = DataBase.findUserById(userId);
         return user != null && user.getPassword().equals(password);
+    }
+
+    private void responseResource(
+            OutputStream output,
+            String url
+    ) {
+        try {
+            DataOutputStream dos = new DataOutputStream(output);
+            byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+            response200Header(dos, body.length);
+            responseBody(dos, body);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
 

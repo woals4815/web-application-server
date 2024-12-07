@@ -30,6 +30,7 @@
 11. TODO: http 요청 테스트는 어떻게 구현할 수 있을까?
 12. 자바는 중첩된 블록 스코프라고 해도 같은 메소드 내에서 같은 변수명 선언은 허용되지 않음
 13. 자바는 single quote와 double quoted의 차이가 있다. single은 char 하나 표시, double은 문자열
+14. TODO: 로그인에 성공해서 redirect 하면 cookie가 사라진다. 이유가 뭐지??
 
 ### 요구사항 2 - get 방식으로 회원가입
 * 
