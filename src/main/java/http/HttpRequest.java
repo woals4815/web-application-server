@@ -27,14 +27,21 @@ public class HttpRequest {
             String[] tokens = line.split(" ");
             this.method = tokens[0];
             this.url = tokens[1];
+            this.setHeader();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
 
-            while(line != null && !line.isEmpty()) {
-                line = br.readLine();
+    private void setHeader(){
+        String line;
+        try {
+            while((line = br.readLine()) != null && !line.isEmpty()) {
                 if (line == null) return;
                 String[] headerKeyValue = line.split(":");
                 headers.put(headerKeyValue[0], headerKeyValue[1].trim());
             }
-        } catch (Exception e) {
+        }catch (Exception e){
             log.error(e.getMessage(), e);
         }
     }
