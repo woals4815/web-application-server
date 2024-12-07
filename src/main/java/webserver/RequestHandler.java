@@ -35,32 +35,24 @@ public class RequestHandler extends Thread {
 
             String line = bufferedReader.readLine();
             String[] tokens = line.split(" ");
-
-            String method = tokens[0];
             String path = tokens[1];
-            String protocol = tokens[2];
-
-            log.debug("method: {}, path: {}, protocol: {}", method, path, protocol);
 
             String resources = path.substring(1);
             DataOutputStream dos = new DataOutputStream(out);
 
-            log.debug("request line {}", line);
+            int contentLength = 0;
 
-            String contentLength = "";
-
-            while (line != null && !line.equals("")) {
+            while (!isLineBlank(line)) {
                 line = bufferedReader.readLine();
-                String[] headerKeyValue = line.split(":");
-                if (headerKeyValue[0].equals("Content-Length")) {
-                    contentLength = headerKeyValue[1].trim();
+                if (hasContentLength(line)) {
+                    contentLength = this.getContentLength(line);
                 }
                 log.debug("header {}", line);
             }
 
 
             if (path.startsWith("/user/create")) {
-                String data = IOUtils.readData(bufferedReader, Integer.parseInt( contentLength ));
+                String data = IOUtils.readData(bufferedReader, contentLength);
                 Map<String, String> keyValue = HttpRequestUtils.parseQueryString(data);
 
                 User newUser = new User(
@@ -84,6 +76,18 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+    private boolean hasContentLength( String line) {
+        String[] headerKeyValue = line.split(":");
+        return headerKeyValue[0].equals("Content-Length");
+    }
+    private boolean isLineBlank(String line) {
+        return line == null || line.equals("");
+    }
+
+    private int getContentLength(String line){
+        String[] tokens = line.split(":");
+        return Integer.parseInt(tokens[1].trim());
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
