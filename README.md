@@ -31,7 +31,7 @@
 12. 자바는 중첩된 블록 스코프라고 해도 같은 메소드 내에서 같은 변수명 선언은 허용되지 않음
 13. 자바는 single quote와 double quoted의 차이가 있다. single은 char 하나 표시, double은 문자열
 14. TODO: 로그인에 성공해서 redirect 하면 cookie가 사라진다. 이유가 뭐지??
-
+15. 메소드 뒤에 throws Exception을 명시하면 checked exception으로 처리가 된다. 이에 대한 효과는 1) 컴파일러가 반드시 호출하는 쪽에서 예외를 처리하도록 강제 2)메소드 사용하는 개발자가 해당 메소드의 명시적 예외를 알 수 있음
 ### 요구사항 2 - get 방식으로 회원가입
 * 
 

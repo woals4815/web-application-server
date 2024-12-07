@@ -45,10 +45,17 @@ public class RequestHandler extends Thread {
 
             int contentLength = 0;
 
+            String cookie = "";
+
+            log.debug("request line: {}", line);
+
             while (!isLineBlank(line)) {
                 line = bufferedReader.readLine();
                 if (hasContentLength(line)) {
                     contentLength = this.getContentLength(line);
+                }
+                if (hasCookie(line)) {
+                    cookie = getCookie(line);
                 }
             }
 
@@ -60,6 +67,16 @@ public class RequestHandler extends Thread {
                 }
                 response302LoginSuccess(dos);
             }
+
+            if (path.startsWith("/user/list")) {
+                if (cookie.equals("")) {
+                    responseRedirectLogin(out);
+                    return;
+                }
+                responseResource(out, "/user/list.html");
+                return;
+            }
+
 
             if (path.startsWith("/user/create") && method.equals("POST")) {
                 String data = IOUtils.readData(bufferedReader, contentLength);
@@ -74,18 +91,36 @@ public class RequestHandler extends Thread {
                 DataBase.addUser(newUser);
                 resposne302Header(dos, "/index.html");
             } else {
+                log.debug("-----------------last--------------------- path is {}", path);
                 responseResource(out, path);
             }
         } catch (IOException e) {
+            log.debug("error");
             log.error(e.getMessage());
         }
+    }
+
+    private void responseRedirectLogin(OutputStream out) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+        dos.writeBytes("Location: /user/login.html \r\n");
+        dos.writeBytes("\r\n");
     }
     private boolean hasContentLength( String line) {
         String[] headerKeyValue = line.split(":");
         return headerKeyValue[0].equals("Content-Length");
     }
+    private boolean hasCookie(String line) {
+        String[] headerKeyValue = line.split(":");
+        return headerKeyValue[0].equals("Cookie");
+    }
     private boolean isLineBlank(String line) {
         return line == null || line.equals("");
+    }
+
+    private String getCookie(String line) {
+        String[] tokens = line.split(":");
+        return tokens[1].trim();
     }
 
     private int getContentLength(String line){
@@ -147,6 +182,7 @@ public class RequestHandler extends Thread {
             String url
     ) {
         try {
+            log.debug("output stream: {}", url);
             DataOutputStream dos = new DataOutputStream(output);
             byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
             response200Header(dos, body.length);
