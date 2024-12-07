@@ -28,6 +28,8 @@
 9. HTTP 응답 header 내에 Location을 설정하면 해당 Path로 redirect 한다.
 10. Header는 항상 \r\n으로 줄바꿈을 해야하고 마지막에는 끝났다는 의미로 \r\n 하나 더 붙여야 한다
 11. TODO: http 요청 테스트는 어떻게 구현할 수 있을까?
+12. 자바는 중첩된 블록 스코프라고 해도 같은 메소드 내에서 같은 변수명 선언은 허용되지 않음
+13. 자바는 single quote와 double quoted의 차이가 있다. single은 char 하나 표시, double은 문자열
 
 ### 요구사항 2 - get 방식으로 회원가입
 * 

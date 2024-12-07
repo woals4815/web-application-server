@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public class RequestHandler extends Thread {
 
             String line = bufferedReader.readLine();
             String[] tokens = line.split(" ");
+            String method = tokens[0];
             String path = tokens[1];
 
             String resources = path.substring(1);
@@ -50,6 +52,11 @@ public class RequestHandler extends Thread {
                 log.debug("header {}", line);
             }
 
+            if (path.startsWith("/user/login") && method.equals("POST")) {
+                String data = IOUtils.readData(bufferedReader, contentLength);
+                responseLoginResult(dos, checkLoginInfo( HttpRequestUtils.parseQueryString(data) ));
+            }
+
 
             if (path.startsWith("/user/create")) {
                 String data = IOUtils.readData(bufferedReader, contentLength);
@@ -61,10 +68,8 @@ public class RequestHandler extends Thread {
                         keyValue.get("name"),
                         keyValue.get("email")
                 );
-
-                byte[] files = Files.readAllBytes(new File("./webapp/index.html").toPath());
-                resposne302Header(dos, files.length);
-                responseBody(dos, files);
+                DataBase.addUser(newUser);
+                resposne302Header(dos, "/index.html");
             } else {
                 byte[] files = Files.readAllBytes(new File("./webapp/" + resources).toPath());
                 response200Header(dos, files.length);
@@ -101,12 +106,40 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void resposne302Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void responseLoginResult(DataOutputStream dos, boolean loginSuccess) {
+        try {
+            if(loginSuccess) {
+                dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+                dos.writeBytes("Location: /index.html \r\n");
+                dos.writeBytes("Set-Cookie: " + "logined=true \r\n");
+                dos.writeBytes("\r\n");
+            } else {
+                byte[] body =Files.readAllBytes(new File("./webapp/user/login_failed.html").toPath());
+                dos.writeBytes("Set-Cookie: " + "logined=false\r\n");
+                response200Header(dos, body.length);
+                responseBody(dos, body);
+                dos.writeBytes("\r\n");
+            }
+        }catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+
+
+    private boolean checkLoginInfo(Map<String, String> formValues) {
+        String userId = formValues.get("userId");
+        String password = formValues.get("password");
+        User user = DataBase.findUserById(userId);
+        return user != null && user.getPassword().equals(password);
+    }
+
+
+    private void resposne302Header(DataOutputStream dos, String url) {
         try {
             dos.writeBytes("HTTP/1.1 302 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("Location: /index.html\r\n");
+            dos.writeBytes("Location: " + url + "\r\n");
             dos.writeBytes("\r\n");
         }catch (Exception e) {
             log.error(e.getMessage());
