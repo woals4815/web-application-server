@@ -54,4 +54,8 @@
 
 * HttpRequest 로직 처리하는 클래스 만들기 
 1. 받은 InputStream의 http request line을 따로 빼서 공통으로 사용해야 할까?
-2. 
+
+* HttpResponse 클래스 만들기
+1. 받은 OutputStream을 받은 class 만들어야 함
+2. 각 메소드로 sendRedirect, forward 메소드를 구현해야 함
+3. 
