@@ -3,9 +3,11 @@ package webserver;
 import java.io.*;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import constants.HttpMethod;
+import controller.*;
 import db.DataBase;
 import http.HttpRequest;
 import http.HttpResponse;
@@ -19,8 +21,11 @@ public class RequestHandler extends Thread {
 
     private Socket connection;
 
+
+
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
+
     }
 
     public void run() {
@@ -29,60 +34,17 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
-            HttpRequest request =  new HttpRequest(in);
+            HttpRequest request = new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
             String url = request.getUrl();
-            HttpMethod method = request.getMethod();
 
-            String cookie = request.getHeaders().get("Cookie");
+            Controller controller= RequestMapping.getController(url);
 
-            if (url.startsWith("/user/login") && method.equals(HttpMethod.POST)) {
-                if (!(checkLoginInfo(request.getBody()))) {
-                    response.forward("/user/login_failed.html");
-                    return;
-                }
-                response.addHeader("Set-Cookie", "logined=true; Path=/");
-                response.sendRedirect("/index.html");
-                return;
-            }
-
-            if (url.startsWith("/user/list")) {
-                if (cookie.equals("")) {
-                    response.sendRedirect("/user/login.html");
-                    return;
-                }
-
-                Collection<User> users = DataBase.findAll();
-                StringBuilder html = new StringBuilder();
-
-                html.append("<table table-hover>");
-                for(User user : users) {
-                    html.append("<tr>");
-                    html.append("<td>").append(user.getUserId()).append("</td>");
-                    html.append("<td>").append(user.getName()).append("</td>");
-                    html.append("<td>").append(user.getEmail()).append("</td>");
-                    html.append("</tr>");
-                }
-                html.append("</table>");
-
-                DataOutputStream newDos = new DataOutputStream(out);
-                response.forwardBody(html.toString());
-                return;
-            }
-
-
-            if (url.startsWith("/user/create") && method.equals(HttpMethod.POST)) {
-                Map<String, String> keyValue = request.getBody();
-                User newUser = new User(
-                        keyValue.get("userId"),
-                        keyValue.get("password"),
-                        keyValue.get("name"),
-                        keyValue.get("email")
-                );
-                DataBase.addUser(newUser);
-                response.sendRedirect("/index.html");
+            if (controller != null) {
+                controller.service(request, response);
             } else {
-                response.forward(url);
+                Controller forwardController = new ForwardController();
+                forwardController.service(request, response);
             }
         } catch (IOException e) {
             log.debug("error");
