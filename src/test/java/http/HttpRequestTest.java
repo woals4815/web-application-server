@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,4 +52,17 @@ public class HttpRequestTest {
         assertEquals("localhost:8080", request.getHeaders().get("HOST"));
     }
 
+    @Test
+    public void testGetParamter(){
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("userId", "javajigi");
+        expectedParams.put("password", "password");
+        expectedParams.put("name", "jaemin");
+        assertEquals(expectedParams, request.getParams());
+    }
+
+    @Test
+    public void testGetParamterUserId(){
+        assertEquals("javajigi", request.getParams().get("userId"));
+    }
 }
