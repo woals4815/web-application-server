@@ -8,9 +8,9 @@ import model.User;
 import java.io.DataOutputStream;
 import java.util.Collection;
 
-public class UserListController implements Controller {
+public class UserListController extends AbstractController {
     @Override
-    public void service(HttpRequest request, HttpResponse response) {
+    public void doGet(HttpRequest request, HttpResponse response) {
         String cookie = request.getHeaders().get("Cookie");
         if (cookie.equals("")) {
             response.sendRedirect("/user/login.html");
@@ -30,7 +30,5 @@ public class UserListController implements Controller {
         }
         html.append("</table>");
         response.forwardBody(html.toString());
-        return;
-
     }
 }
