@@ -33,33 +33,26 @@ public class RequestHandler extends Thread {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
             HttpRequest request =  new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
-
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-
-
             String url = request.getUrl();
             String method = request.getMethod();
 
-
-            DataOutputStream dos = new DataOutputStream(out);
-            int contentLength = 0;
-            String cookie = "";
+            String cookie = request.getHeaders().get("Cookie");
             String accept = "";
 
 
             if (url.startsWith("/user/login") && method.equals("POST")) {
-                String data = IOUtils.readData(bufferedReader, contentLength);
-                if (!(checkLoginInfo(HttpRequestUtils.parseQueryString(data)))) {
+                if (!(checkLoginInfo(request.getBody()))) {
                     responseResource(out, "/user/login_failed.html", accept);
                     return;
                 }
-                response302LoginSuccess(dos);
+                response.addHeader("Set-Cookie", "logined=true; Path=/");
+                response.sendRedirect("/index.html");
                 return;
             }
 
             if (url.startsWith("/user/list")) {
                 if (cookie.equals("")) {
-                    responseRedirectLogin(out);
+                    response.sendRedirect("/user/login.html");
                     return;
                 }
 
@@ -77,10 +70,7 @@ public class RequestHandler extends Thread {
                 html.append("</table>");
 
                 DataOutputStream newDos = new DataOutputStream(out);
-                byte[] body = html.toString().getBytes();
-
-                response200Header(newDos, body.length, accept);
-                responseBody(newDos, body);
+                response.forwardBody(html.toString());
                 return;
             }
 

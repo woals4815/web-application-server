@@ -41,6 +41,19 @@ public class HttpResponse {
             log.error(e.getMessage());
         }
     }
+    public void forwardBody(String body){
+        try {
+            byte[] bodyBytes = body.getBytes("utf-8");
+            header.put("Content-Type", "text/html;charset=utf-8");
+            header.put("Content-Length", String.valueOf(body.length()));
+            response200Header();
+            responseBody(bodyBytes);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+
+    }
+
 
     public void sendRedirect(String url) {
         try {
