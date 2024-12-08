@@ -38,7 +38,7 @@ public class HttpRequest {
         try {
             while((line = br.readLine()) != null && !line.isEmpty()) {
                 if (line == null) return;
-                String[] headerKeyValue = line.split(":");
+                String[] headerKeyValue = line.split(":", 2);
                 headers.put(headerKeyValue[0], headerKeyValue[1].trim());
             }
         }catch (Exception e){
