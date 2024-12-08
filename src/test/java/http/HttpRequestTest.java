@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -39,7 +41,16 @@ public class HttpRequestTest {
 
     @Test
     public void testGetheader(){
-        System.out.println(request.getHeaders());
+        Map<String, String> expectedHeaders = new HashMap<>();
+        expectedHeaders.put("HOST", "localhost:8080");
+        expectedHeaders.put("Connection", "keep-alive");
+        expectedHeaders.put("Accept", "*/*");
+        assertEquals(expectedHeaders, request.getHeaders());
+    }
+
+    @Test
+    public void testGetHeaderAccept() {
+        assertEquals("localhost:8080", request.getHeaders().get("HOST"));
     }
 
 }
