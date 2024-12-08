@@ -59,3 +59,7 @@
 1. 받은 OutputStream을 받은 class 만들어야 함
 2. 각 메소드로 sendRedirect, forward 메소드를 구현해야 함
 3. http response 또한 header와 body를 한 줄 개행을 추가해야 함
+
+* 각 요청 로직을 수행하는 Controller 분리
+1. RequestMapping을 통해 각 url 에 대해 router 역할을 하게 한다
+2. AbstractController라는 추상 클래스를 중간에 두면 각 controller마다 request의 method에 분기를 통해 다른 메소드를 호출하도록 할 수 있다. abstract controller가 실질적으로 service를 호출하므로 다형성을 만들 수 있다
