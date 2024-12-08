@@ -37,12 +37,10 @@ public class RequestHandler extends Thread {
             String method = request.getMethod();
 
             String cookie = request.getHeaders().get("Cookie");
-            String accept = "";
-
 
             if (url.startsWith("/user/login") && method.equals("POST")) {
                 if (!(checkLoginInfo(request.getBody()))) {
-                    responseResource(out, "/user/login_failed.html", accept);
+                    response.forward("/user/login_failed.html");
                     return;
                 }
                 response.addHeader("Set-Cookie", "logined=true; Path=/");
@@ -94,39 +92,6 @@ public class RequestHandler extends Thread {
         }
     }
 
-
-    private void responseRedirectLogin(OutputStream out) throws IOException {
-        DataOutputStream dos = new DataOutputStream(out);
-        dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-        dos.writeBytes("Location: /user/login.html \r\n");
-        dos.writeBytes("\r\n");
-    }
-
-
-    private void response302LoginSuccess(
-            DataOutputStream dos
-    ) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Set-Cookie: logined=true; Path=/ \r\n");
-            dos.writeBytes("Location: /index.html \r\n");
-            dos.writeBytes("\r\n");
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String accept) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: " + accept + ";charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
     private boolean checkLoginInfo(Map<String, String> formValues) {
         String userId = formValues.get("userId");
         String password = formValues.get("password");
@@ -134,28 +99,4 @@ public class RequestHandler extends Thread {
         return user != null && user.getPassword().equals(password);
     }
 
-    private void responseResource(
-            OutputStream output,
-            String url,
-            String accept
-    ) {
-        try {
-            log.debug("output stream: {}", url);
-            DataOutputStream dos = new DataOutputStream(output);
-            byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-            response200Header(dos, body.length, accept);
-            responseBody(dos, body);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
 }
