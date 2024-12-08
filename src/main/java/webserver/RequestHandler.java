@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Collection;
 import java.util.Map;
 
+import constants.HttpMethod;
 import db.DataBase;
 import http.HttpRequest;
 import http.HttpResponse;
@@ -31,11 +32,11 @@ public class RequestHandler extends Thread {
             HttpRequest request =  new HttpRequest(in);
             HttpResponse response = new HttpResponse(out);
             String url = request.getUrl();
-            String method = request.getMethod();
+            HttpMethod method = request.getMethod();
 
             String cookie = request.getHeaders().get("Cookie");
 
-            if (url.startsWith("/user/login") && method.equals("POST")) {
+            if (url.startsWith("/user/login") && method.equals(HttpMethod.POST)) {
                 if (!(checkLoginInfo(request.getBody()))) {
                     response.forward("/user/login_failed.html");
                     return;
@@ -70,7 +71,7 @@ public class RequestHandler extends Thread {
             }
 
 
-            if (url.startsWith("/user/create") && method.equals("POST")) {
+            if (url.startsWith("/user/create") && method.equals(HttpMethod.POST)) {
                 Map<String, String> keyValue = request.getBody();
                 User newUser = new User(
                         keyValue.get("userId"),

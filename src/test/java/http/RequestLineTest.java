@@ -1,5 +1,6 @@
 package http;
 
+import constants.HttpMethod;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +19,7 @@ public class RequestLineTest {
 
     @Test
     public void getMethod() {
-        assertEquals("GET", requestLine.getMethod());
+        assertEquals(HttpMethod.GET, requestLine.getMethod());
     }
 
     @Test
