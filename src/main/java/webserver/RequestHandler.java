@@ -2,13 +2,9 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import db.DataBase;
 import http.HttpRequest;
@@ -19,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import util.IOUtils;
 
-import javax.xml.crypto.Data;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -37,36 +32,22 @@ public class RequestHandler extends Thread {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
             HttpRequest request =  new HttpRequest(in);
-
+            HttpResponse response = new HttpResponse(out);
 
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 
-            String line = bufferedReader.readLine();
-            String[] tokens = line.split(" ");
-            String method = tokens[0];
-            String path = tokens[1];
+
+            String url = request.getUrl();
+            String method = request.getMethod();
 
 
             DataOutputStream dos = new DataOutputStream(out);
             int contentLength = 0;
             String cookie = "";
             String accept = "";
-            log.debug("request line: {}", line);
-            while (!isLineBlank(line)) {
-                line = bufferedReader.readLine();
-                log.debug("header line {}", line);
-                if (hasContentLength(line)) {
-                    contentLength = this.getContentLength(line);
-                }
-                if (hasCookie(line)) {
-                    cookie = getCookie(line);
-                }
-                if(hasAccept(line)) {
-                    accept = getAccept(line);
-                }
-            }
 
-            if (path.startsWith("/user/login") && method.equals("POST")) {
+
+            if (url.startsWith("/user/login") && method.equals("POST")) {
                 String data = IOUtils.readData(bufferedReader, contentLength);
                 if (!(checkLoginInfo(HttpRequestUtils.parseQueryString(data)))) {
                     responseResource(out, "/user/login_failed.html", accept);
@@ -76,7 +57,7 @@ public class RequestHandler extends Thread {
                 return;
             }
 
-            if (path.startsWith("/user/list")) {
+            if (url.startsWith("/user/list")) {
                 if (cookie.equals("")) {
                     responseRedirectLogin(out);
                     return;
@@ -104,10 +85,8 @@ public class RequestHandler extends Thread {
             }
 
 
-            if (path.startsWith("/user/create") && method.equals("POST")) {
-                String data = IOUtils.readData(bufferedReader, contentLength);
-                Map<String, String> keyValue = HttpRequestUtils.parseQueryString(data);
-
+            if (url.startsWith("/user/create") && method.equals("POST")) {
+                Map<String, String> keyValue = request.getBody();
                 User newUser = new User(
                         keyValue.get("userId"),
                         keyValue.get("password"),
@@ -115,10 +94,9 @@ public class RequestHandler extends Thread {
                         keyValue.get("email")
                 );
                 DataBase.addUser(newUser);
-                resposne302Header(dos, "/index.html");
+                response.sendRedirect("/index.html");
             } else {
-                log.debug("-----------------last--------------------- path is {}", path);
-                responseResource(out, path, accept);
+                response.forward(url);
             }
         } catch (IOException e) {
             log.debug("error");
@@ -127,42 +105,13 @@ public class RequestHandler extends Thread {
     }
 
 
-    private String getAccept(String line){
-        String accepts = line.split(":")[1];
-        return accepts.split(",")[0];
-    }
-
-    private boolean hasAccept(String line) {
-        return line.split(":")[0].equals("Accept");
-    }
-
     private void responseRedirectLogin(OutputStream out) throws IOException {
         DataOutputStream dos = new DataOutputStream(out);
         dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
         dos.writeBytes("Location: /user/login.html \r\n");
         dos.writeBytes("\r\n");
     }
-    private boolean hasContentLength( String line) {
-        String[] headerKeyValue = line.split(":");
-        return headerKeyValue[0].equals("Content-Length");
-    }
-    private boolean hasCookie(String line) {
-        String[] headerKeyValue = line.split(":");
-        return headerKeyValue[0].equals("Cookie");
-    }
-    private boolean isLineBlank(String line) {
-        return line == null || line.equals("");
-    }
 
-    private String getCookie(String line) {
-        String[] tokens = line.split(":");
-        return tokens[1].trim();
-    }
-
-    private int getContentLength(String line){
-        String[] tokens = line.split(":");
-        return Integer.parseInt(tokens[1].trim());
-    }
 
     private void response302LoginSuccess(
             DataOutputStream dos
@@ -207,18 +156,6 @@ public class RequestHandler extends Thread {
             response200Header(dos, body.length, accept);
             responseBody(dos, body);
         } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-    }
-
-
-    private void resposne302Header(DataOutputStream dos, String url) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Location: " + url + "\r\n");
-            dos.writeBytes("\r\n");
-        }catch (Exception e) {
             log.error(e.getMessage());
         }
     }
