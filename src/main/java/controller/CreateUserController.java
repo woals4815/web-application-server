@@ -7,9 +7,9 @@ import model.User;
 
 import java.util.Map;
 
-public class CreateUserController implements Controller {
+public class CreateUserController extends AbstractController {
     @Override
-    public void service(HttpRequest request, HttpResponse response) {
+    public void doPost(HttpRequest request, HttpResponse response) {
         Map<String, String> keyValue = request.getBody();
         User newUser = new User(
                 keyValue.get("userId"),

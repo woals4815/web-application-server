@@ -7,9 +7,9 @@ import model.User;
 
 import java.util.Map;
 
-public class LoginController implements Controller {
+public class LoginController extends AbstractController {
     @Override
-    public void service(HttpRequest request, HttpResponse response) {
+    public void doPost(HttpRequest request, HttpResponse response) {
         if (!(checkLoginInfo(request.getBody()))) {
             response.forward("/user/login_failed.html");
             return;
