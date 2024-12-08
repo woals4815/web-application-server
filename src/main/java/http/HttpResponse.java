@@ -25,14 +25,14 @@ public class HttpResponse {
 
     public void forward(String url) {
         try {
-            byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+            byte[] body = Files.readAllBytes(new File("./webapp" + url ).toPath());
 
             if (url.contains("css")) {
                 this.addHeader("Content-Type", "text/css");
             } else if (url.contains("js")) {
                 this.header.put("Content-Type", "text/javascript");
             } else {
-                this.header.put("Content-Type", "text/html");
+                this.header.put("Content-Type", "text/html;charset=utf-8");
             }
             header.put("Content-Length", String.valueOf(body.length));
             response200Header();
@@ -61,6 +61,7 @@ public class HttpResponse {
     private void response200Header() throws IOException {
         this.dos.writeBytes("HTTP/1.1 200 OK\r\n");
         writeHeader();
+        this.dos.writeBytes("\r\n");
     }
 
     private void resposneRedirectHeader() throws  IOException {

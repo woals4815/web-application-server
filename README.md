@@ -58,4 +58,4 @@
 * HttpResponse 클래스 만들기
 1. 받은 OutputStream을 받은 class 만들어야 함
 2. 각 메소드로 sendRedirect, forward 메소드를 구현해야 함
-3. 
+3. http response 또한 header와 body를 한 줄 개행을 추가해야 함

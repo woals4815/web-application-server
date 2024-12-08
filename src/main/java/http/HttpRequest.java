@@ -30,6 +30,7 @@ public class HttpRequest {
             this.br = new BufferedReader(new InputStreamReader(this.in, "UTF-8"));
 
             String line = br.readLine();
+            log.debug("line is. {}", line);
             if (line == null) return;
 
             String[] tokens = line.split(" ");
