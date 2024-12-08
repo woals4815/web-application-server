@@ -1,5 +1,6 @@
 package http;
 
+import constants.HttpMethod;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class HttpRequestTest {
     @Test
     public void testGetMethod() throws IOException {
         HttpRequest request1 = new HttpRequest(getInputStream("/Http_GET.txt"));
-        assertEquals("GET", request1.getMethod());
+        assertEquals(HttpMethod.GET, request1.getMethod());
     }
 
     @Test
@@ -52,16 +53,18 @@ public class HttpRequestTest {
 
     @Test
     public void testGetParamter() throws IOException {
+        HttpRequest request1 = new HttpRequest(getInputStream("/Http_GET.txt"));
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put("userId", "javajigi");
         expectedParams.put("password", "password");
         expectedParams.put("name", "jaemin");
-        assertEquals(expectedParams, request.getParams());
+        assertEquals(expectedParams, request1.getParams());
     }
 
     @Test
-    public void testGetParamterUserId(){
-        assertEquals("javajigi", request.getParams().get("userId"));
+    public void testGetParamterUserId() throws IOException {
+        HttpRequest request1 = new HttpRequest(getInputStream("/Http_GET.txt"));
+        assertEquals("javajigi", request1.getParams().get("userId"));
     }
 
     @Test

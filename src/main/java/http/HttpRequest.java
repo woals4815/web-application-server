@@ -1,5 +1,6 @@
 package http;
 
+import constants.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
@@ -10,7 +11,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class HttpRequest {
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
@@ -36,7 +36,7 @@ public class HttpRequest {
                 headers.put(headerKeyValue[0].trim(), headerKeyValue[1].trim());
                 line = br.readLine();
             }
-            if ((this.getMethod()).equals("POST")) {
+            if ((this.getMethod()).equals(HttpMethod.POST)) {
                 this.setBody();
             }
         } catch (Exception e) {
@@ -52,7 +52,7 @@ public class HttpRequest {
 
 
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return requestLine.getMethod();
     }
     public String getUrl() {

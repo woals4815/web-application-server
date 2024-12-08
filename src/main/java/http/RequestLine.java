@@ -1,5 +1,6 @@
 package http;
 
+import constants.HttpMethod;
 import util.HttpRequestUtils;
 
 import java.util.HashMap;
@@ -7,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class RequestLine {
-    private String method;
+    private HttpMethod method;
     private String url;
     private Map<String, String> params = new HashMap<>();
 
@@ -16,7 +17,7 @@ public class RequestLine {
         if (tokens.length < 3) {
             throw new IllegalArgumentException(line + "");
         }
-        method = tokens[0];
+        method = HttpMethod.valueOf(tokens[0]);
         url = tokens[1];
         setParameter(url);
     }
@@ -28,7 +29,7 @@ public class RequestLine {
         }
     }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return method;
     }
     public String getUrl() {
