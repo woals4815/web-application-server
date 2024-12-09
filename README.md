@@ -63,3 +63,13 @@
 * 각 요청 로직을 수행하는 Controller 분리
 1. RequestMapping을 통해 각 url 에 대해 router 역할을 하게 한다
 2. AbstractController라는 추상 클래스를 중간에 두면 각 controller마다 request의 method에 분기를 통해 다른 메소드를 호출하도록 할 수 있다. abstract controller가 실질적으로 service를 호출하므로 다형성을 만들 수 있다
+
+
+
+### Servlet
+* Controller, HttpRequest, HttpResponse를 추상화해 인터페이스로 정의해 놓은 표준
+* 서블릿 컨테이너는 위 인터페에스 구현체. 앞서 있던 웹 서버가 서블렛 컨테이너임
+* 서블릿을 제공하는 건 tomcat, jetty등 오픈소스가 다양
+* TODO: 톰캣을 쓸 건데 몇 버전을 사용해야할까? -> 현재 있는 가장 낮은 버전은 9이므로 9로 선택
+* Embeded Tomcat은 자료파일만 담고 있음
+* 
