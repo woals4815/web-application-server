@@ -3,6 +3,7 @@ package http;
 import constants.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.HttpCookie;
 import util.HttpRequestUtils;
 import util.IOUtils;
 
@@ -50,6 +51,9 @@ public class HttpRequest {
         body = HttpRequestUtils.parseQueryString(data);
     }
 
+    public HttpCookie getCookie() {
+        return new HttpCookie(headers.get("Cookie"));
+    }
 
 
     public HttpMethod getMethod() {

@@ -16,9 +16,6 @@ public class LoginController extends AbstractController {
             response.forward("/user/login_failed.html");
             return;
         }
-        HttpSession session = new HttpSession();
-        HttpSessionStorage.add(session);
-        response.addHeader("Set-Cookie", String.format("JSESSIONID=%s; Path=/", session.getId()));
         response.sendRedirect("/index.html");
     }
     private boolean checkLoginInfo(Map<String, String> formValues) {
