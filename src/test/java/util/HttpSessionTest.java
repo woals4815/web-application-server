@@ -20,13 +20,13 @@ public class HttpSessionTest {
     );
     @Before
     public void setUp() throws Exception {
-        session = new HttpSession();
+        session = new HttpSession("123");
         session.setAttribute("user", user);
     }
 
     @Test
     public void getId() {
-        assertTrue(String.class.isInstance(session.getId()));
+        assertTrue(session.getId().equals("123"));
     }
 
     @Test

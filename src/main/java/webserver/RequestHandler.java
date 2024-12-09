@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import constants.HttpMethod;
 import controller.*;
@@ -40,6 +41,10 @@ public class RequestHandler extends Thread {
 
             Controller controller= RequestMapping.getController(url);
 
+            if (request.getCookie().getCookies().get("JSESSIONID") == null) {
+                response.addHeader("Set-Cookie", String.format("JSESSIONID=%s; Path=/", UUID.randomUUID()));
+            }
+
             if (controller != null) {
                 controller.service(request, response);
             } else {
@@ -51,5 +56,4 @@ public class RequestHandler extends Thread {
             log.error(e.getMessage());
         }
     }
-
 }

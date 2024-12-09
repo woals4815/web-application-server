@@ -11,7 +11,12 @@ public class HttpSessionStorage {
     }
 
     public static HttpSession get(String id) {
-        return HttpSessionStorage.sessionMap.get(id);
+        HttpSession session =  HttpSessionStorage.sessionMap.get(id);
+        if (session == null) {
+            HttpSession newSession = new HttpSession(id);
+            return newSession;
+        }
+        return session;
     }
 
     public static void remove(String sessionId) {

@@ -8,8 +8,8 @@ public class HttpSession {
     private String sessionId;
     private Map<String, Object> attributes = new HashMap<String, Object>();
 
-    public HttpSession() {
-        this.sessionId = UUID.randomUUID().toString();
+    public HttpSession(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public String getId(){
