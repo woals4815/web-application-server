@@ -52,11 +52,4 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private boolean checkLoginInfo(Map<String, String> formValues) {
-        String userId = formValues.get("userId");
-        String password = formValues.get("password");
-        User user = DataBase.findUserById(userId);
-        return user != null && user.getPassword().equals(password);
-    }
-
 }
