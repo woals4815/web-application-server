@@ -4,6 +4,8 @@ import db.DataBase;
 import http.HttpRequest;
 import http.HttpResponse;
 import model.User;
+import util.HttpSession;
+import util.HttpSessionStorage;
 
 import java.util.Map;
 
@@ -14,7 +16,9 @@ public class LoginController extends AbstractController {
             response.forward("/user/login_failed.html");
             return;
         }
-        response.addHeader("Set-Cookie", "logined=true; Path=/");
+        HttpSession session = new HttpSession();
+        HttpSessionStorage.add(session);
+        response.addHeader("Set-Cookie", String.format("JSESSIONID=%s; Path=/", session.getId()));
         response.sendRedirect("/index.html");
     }
     private boolean checkLoginInfo(Map<String, String> formValues) {
