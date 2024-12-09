@@ -3,9 +3,7 @@ package http;
 import constants.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpCookie;
-import util.HttpRequestUtils;
-import util.IOUtils;
+import util.*;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -53,6 +51,10 @@ public class HttpRequest {
 
     public HttpCookie getCookie() {
         return new HttpCookie(headers.get("Cookie"));
+    }
+
+    public HttpSession getSession() {
+        return HttpSessionStorage.get(getCookie().getCookies().get("JSESSIONID"));
     }
 
 
